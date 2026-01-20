@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { StrategyChart } from './components/StrategyChart'; 
 import { supabase } from './supabase'; // Import Supabase
 import { useRouter } from 'next/navigation';
+import { LiveTicker } from './components/LiveTicker';
 
 // ... (Keep existing Types Interfaces: OptimizationRequest, StrategyResponse)
 // Copy the interfaces from your previous file if needed, or I can repaste them below if you ask.
@@ -252,11 +253,19 @@ export default function Terminal() {
       {/* NAVBAR */}
       <nav className="fixed w-full z-50 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="text-xl font-bold tracking-tighter flex items-center gap-2 text-white">
-                <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${backendStatus === 'online' ? 'bg-emerald-500 text-emerald-500' : 'bg-red-500 text-red-500'}`}/>
-                LUX QUANT <span className="text-emerald-500">FACTORY</span>
+            
+            {/* LEFT SIDE: LOGO + TICKER */}
+            <div className="flex items-center">
+                <div className="text-xl font-bold tracking-tighter flex items-center gap-2 text-white mr-6">
+                    <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${backendStatus === 'online' ? 'bg-emerald-500 text-emerald-500' : 'bg-red-500 text-red-500'}`}/>
+                    LUX QUANT <span className="text-emerald-500">FACTORY</span>
+                </div>
+                
+                {/* 🟢 LIVE TICKER ADDED HERE */}
+                <LiveTicker />
             </div>
             
+            {/* RIGHT SIDE: BUTTONS */}
             <div className="flex items-center gap-4">
                 {user ? (
                     <>
