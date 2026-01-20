@@ -2,13 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { StrategyChart } from './components/StrategyChart'; 
-import { supabase } from './supabase'; // Import Supabase
+import { supabase } from './supabase'; 
 import { useRouter } from 'next/navigation';
 import { LiveTicker } from './components/LiveTicker';
+import { toast } from 'sonner';
 
-// ... (Keep existing Types Interfaces: OptimizationRequest, StrategyResponse)
-// Copy the interfaces from your previous file if needed, or I can repaste them below if you ask.
-// For brevity, assuming interfaces are same as before.
+// --- 1. DEFINITIONS & INTERFACES ---
 
 interface OptimizationRequest {
   symbol: string;
@@ -40,10 +39,7 @@ interface StrategyResponse {
   generatedId?: string;
 }
 
-// ... (Keep Icons & Components: Skeleton, Badge) ...
-// (Paste your existing Icons object and Skeleton/Badge components here)
 const Icons = {
-  // ... (Your existing icons)
   Chart: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>,
   Server: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" /></svg>,
   Lock: () => <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>,
@@ -69,18 +65,20 @@ const Badge = ({ children, type = "neutral" }: { children: React.ReactNode, type
   return <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${styles[type]}`}>{children}</span>;
 };
 
+// --- 2. MAIN COMPONENT ---
+
 export default function Terminal() {
   const [loading, setLoading] = useState(false);
   const [strategy, setStrategy] = useState<StrategyResponse | null>(null);
   const [error, setError] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking");
-  const [user, setUser] = useState<any>(null); // NEW: User state
+  const [user, setUser] = useState<any>(null);
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const router = useRouter();
 
-  // ... (Keep existing State: symbol, capital, etc.)
+  // Inputs
   const [symbol, setSymbol] = useState("BTC-USD");
   const [capital, setCapital] = useState(50000);
   const [minTrades, setMinTrades] = useState(25);
@@ -100,7 +98,7 @@ export default function Terminal() {
     "Metals": ["Gold", "Silver"]
   };
 
-  // Check Auth on Load
+  // --- AUTH ---
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -109,50 +107,54 @@ export default function Terminal() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Login Function
   const handleLogin = async () => {
-    // Basic Magic Link Login (Simplest to implement)
     const email = prompt("Enter email for Magic Link login:");
     if (!email) return;
+    const toastId = toast.loading("Sending magic link...");
     const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) alert(error.message);
-    else alert("Check your email for the login link!");
+    if (error) {
+        toast.error(error.message, { id: toastId });
+    } else {
+        toast.success("Check your email! Magic link sent.", { id: toastId });
+    }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    toast.info("Logged out successfully");
   };
 
-  // Save Strategy Function
   const saveStrategy = async () => {
     if (!user) {
-        alert("Please login to save strategies!");
+        toast.error("Please login to save strategies!");
         handleLogin();
         return;
     }
     if (!strategy) return;
 
+    const toastId = toast.loading("Saving to dashboard...");
+
     const { error } = await supabase.from('strategies').insert({
         user_id: user.id,
         symbol: symbol,
         name: strategy.strategy_name,
-        entry_price: strategy.chart_data[strategy.chart_data.length-1]?.value || 100, // Mock current price
+        entry_price: strategy.chart_data[strategy.chart_data.length-1]?.value || 100,
         pf: strategy.metrics.profit_factor,
-        win_rate: 0, // Backend needs to send this, or default 0
+        win_rate: 0,
         trades: strategy.metrics.total_txns,
         duration: strategy.metrics.duration,
         pine_code: strategy.metrics.pine_code
     });
 
     if (error) {
-        alert("Error saving: " + error.message);
+        toast.error("Error saving: " + error.message, { id: toastId });
     } else {
-        alert("Strategy saved to Dashboard! 🚀");
-        router.push('/dashboard');
+        toast.success("Strategy saved to Dashboard! 🚀", { id: toastId });
+        setTimeout(() => router.push('/dashboard'), 1000);
     }
   };
 
-  // ... (Keep existing useEffects for health check, click outside) ...
+  // --- EFFECTS ---
   useEffect(() => {
     const checkHealth = async () => {
         try {
@@ -175,7 +177,7 @@ export default function Terminal() {
 
   const scrollToDashboard = () => dashboardRef.current?.scrollIntoView({ behavior: 'smooth' });
 
-  // ... (Keep runOptimization function exactly as is)
+  // --- OPTIMIZATION LOGIC ---
   const runOptimization = async () => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
@@ -227,7 +229,6 @@ export default function Terminal() {
     }
   };
 
-  // ... (Keep downloadCSV, getConfidenceLevel helpers)
   const downloadCSV = () => {
       if(!strategy) return;
       const headers = "Time,Equity\n";
@@ -261,7 +262,7 @@ export default function Terminal() {
                     LUX QUANT <span className="text-emerald-500">FACTORY</span>
                 </div>
                 
-                {/* 🟢 LIVE TICKER ADDED HERE */}
+                {/* 🟢 LIVE TICKER */}
                 <LiveTicker />
             </div>
             
@@ -282,7 +283,7 @@ export default function Terminal() {
         </div>
       </nav>
 
-      {/* HERO SECTION ... (Keep exact same hero code) ... */}
+      {/* HERO SECTION */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/10 via-zinc-950 to-zinc-950 z-0"/>
           
@@ -308,7 +309,8 @@ export default function Terminal() {
       {/* DASHBOARD */}
       <section ref={dashboardRef} className="py-24 px-4 md:px-8 relative bg-zinc-950">
           <div className="max-w-7xl mx-auto">
-              {/* ... (Keep Header and Status Badges) ... */}
+              
+              {/* HEADER & STATUS */}
               <div className="flex flex-col md:flex-row items-end justify-between border-b border-white/5 pb-6 mb-10 gap-4">
                   <div>
                       <h2 className="text-3xl font-bold text-white tracking-tight">Strategy Terminal</h2>
@@ -328,10 +330,9 @@ export default function Terminal() {
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                   
-                  {/* SIDEBAR ... (Keep exact same sidebar code) ... */}
+                  {/* SIDEBAR */}
                   <div className="lg:col-span-3 space-y-6 sticky top-24">
                       <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm">
-                          {/* ... (Paste sidebar content from previous step) ... */}
                           <div className="space-y-6">
                               <div className="relative" ref={dropdownRef}>
                                   <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Asset Class</label>
@@ -434,7 +435,6 @@ export default function Terminal() {
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                  {/* KPI Cards... (Keep existing) */}
                                   <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm relative overflow-hidden group">
                                       <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"/>
                                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Net Profit</p>
@@ -469,9 +469,7 @@ export default function Terminal() {
                                   <div className="flex justify-between items-center mb-6">
                                       <div><h3 className="font-bold text-white text-lg flex items-center gap-2">Equity Curve<Badge type="info">{symbol}</Badge></h3><p className="text-xs text-zinc-500 font-mono mt-1">Simulated performance. Static view.</p></div>
                                       <div className="flex gap-2">
-                                          {/* SAVE BUTTON - NEW */}
                                           <button onClick={saveStrategy} className="flex items-center gap-2 text-[10px] bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/50 px-3 py-1.5 rounded border border-emerald-900/50 transition-colors font-bold"><Icons.Save /> SAVE</button>
-                                          
                                           <button onClick={downloadCSV} className="flex items-center gap-2 text-[10px] bg-zinc-950 hover:bg-zinc-800 text-zinc-300 px-3 py-1.5 rounded border border-white/10 transition-colors font-bold"><Icons.Download /> CSV</button>
                                           <button onClick={() => setShowCode(!showCode)} className="flex items-center gap-2 text-[10px] bg-emerald-950/30 text-emerald-500 hover:bg-emerald-950/50 px-3 py-1.5 rounded border border-emerald-900/50 transition-colors font-bold"><Icons.Code /> {showCode ? "HIDE PINE" : "VIEW PINE"}</button>
                                       </div>
@@ -499,7 +497,7 @@ export default function Terminal() {
           </div>
       </section>
 
-      {/* FOOTER ... (Keep exact same footer code) ... */}
+      {/* FOOTER */}
       <footer className="py-12 border-t border-white/5 bg-zinc-950">
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-xs text-zinc-600">&copy; {new Date().getFullYear()} Lux Quant AI. Not financial advice. Data provided for educational purposes.</div>

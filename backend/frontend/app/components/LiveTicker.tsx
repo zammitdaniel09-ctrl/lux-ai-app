@@ -1,33 +1,34 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useWebSocket from 'react-use-websocket';
 
-// 1. Define the shape of the Binance stream data
 interface BinanceTickerData {
-  s: string; // Symbol (e.g., "BTCUSDT")
-  p: string; // Price (e.g., "93000.50")
-  [key: string]: any; // Allow other properties just in case
+  s: string;
+  p: string;
+  [key: string]: any;
 }
+
+const SOCKET_URL = 'wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade/solusdt@trade';
 
 export const LiveTicker = () => {
   const [prices, setPrices] = useState({ BTC: 0, ETH: 0, SOL: 0 });
-  
-  // Connect to Binance Public Stream
-  const socketUrl = 'wss://stream.binance.com:9443/ws/btcusdt@trade/ethusdt@trade/solusdt@trade';
+  const lastUpdateTime = useRef(0);
 
-  // 2. Pass the interface <BinanceTickerData> to the hook
-  const { lastJsonMessage } = useWebSocket<BinanceTickerData>(socketUrl, {
+  // FIXED: Removed the 'throttle' property that was causing the error
+  const { lastJsonMessage } = useWebSocket<BinanceTickerData>(SOCKET_URL, {
     shouldReconnect: () => true,
   });
 
   useEffect(() => {
-    // 3. Now TypeScript knows 's' and 'p' exist on lastJsonMessage
     if (lastJsonMessage && lastJsonMessage.s && lastJsonMessage.p) {
-      const symbol = lastJsonMessage.s.replace('USDT', '');
-      const price = parseFloat(lastJsonMessage.p);
-      
-      // Update the specific coin price
-      setPrices(prev => ({ ...prev, [symbol]: price }));
+      const now = Date.now();
+      // Manual Throttling: Only update once per second
+      if (now - lastUpdateTime.current > 1000) {
+        const symbol = lastJsonMessage.s.replace('USDT', '');
+        const price = parseFloat(lastJsonMessage.p);
+        setPrices(prev => ({ ...prev, [symbol]: price }));
+        lastUpdateTime.current = now;
+      }
     }
   }, [lastJsonMessage]);
 
