@@ -1,13 +1,16 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { StrategyChart } from './components/StrategyChart'; 
 import { supabase } from './supabase'; 
 import { useRouter } from 'next/navigation';
 import { LiveTicker } from './components/LiveTicker';
 import { toast } from 'sonner';
+import { InteractiveChart } from './components/InteractiveChart';
+import { TerminalLog } from './components/TerminalLog';
+import { MarketWidget } from './components/MarketWidget';
+import { LegalModal } from './components/LegalModal';
 
-// --- 1. DEFINITIONS & INTERFACES ---
+// --- DEFINITIONS & INTERFACES ---
 
 interface OptimizationRequest {
   symbol: string;
@@ -65,7 +68,7 @@ const Badge = ({ children, type = "neutral" }: { children: React.ReactNode, type
   return <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border ${styles[type]}`}>{children}</span>;
 };
 
-// --- 2. MAIN COMPONENT ---
+// --- MAIN COMPONENT ---
 
 export default function Terminal() {
   const [loading, setLoading] = useState(false);
@@ -75,6 +78,10 @@ export default function Terminal() {
   const [backendStatus, setBackendStatus] = useState<"online" | "offline" | "checking">("checking");
   const [user, setUser] = useState<any>(null);
   
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState({ title: "", text: "" });
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const router = useRouter();
 
@@ -152,6 +159,31 @@ export default function Terminal() {
         toast.success("Strategy saved to Dashboard! 🚀", { id: toastId });
         setTimeout(() => router.push('/dashboard'), 1000);
     }
+  };
+
+  const handleCopyCode = async () => {
+    if (!strategy?.metrics?.pine_code) {
+      toast.error("No Pine Script code available to copy.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(strategy.metrics.pine_code);
+      toast.success("Pine Script copied to clipboard! 📋");
+    } catch (err) {
+      console.error("Copy failed", err);
+      toast.error("Failed to copy. Please manually select and copy.");
+    }
+  };
+
+  // --- MODAL LOGIC ---
+  const openModal = (type: 'docs' | 'terms' | 'privacy') => {
+    const contentMap = {
+        docs: { title: "System Documentation", text: "LUX QUANT AI V4.4\n\nThis system utilizes a hybrid LSTM-Transformer architecture to analyze market microstructure.\n\nInput Vectors:\n- OHLCV Data (Yahoo Finance)\n- Calculated Volatility Indices\n\nOptimization Logic:\n- Monte Carlo Simulation (n=10,000)\n- Sharpe Ratio Maximization\n\nDisclaimer: This tool is for educational purposes only. Past performance is not indicative of future results." },
+        terms: { title: "Terms of Service", text: "By using Lux Quant AI, you agree to the following:\n\n1. No Financial Advice: The generated strategies are mathematical models, not financial advice.\n2. Risk Disclosure: Trading involves substantial risk of loss.\n3. User Responsibility: You are solely responsible for any trades executed based on this data.\n\nAccess is provided 'as-is' without warranty of any kind." },
+        privacy: { title: "Privacy Policy", text: "Data Collection:\n- We store your email for authentication (Supabase Auth).\n- We store generated strategies in your personal dashboard.\n\nWe do not sell your data. We do not track your trading activity outside this application." }
+    };
+    setModalContent(contentMap[type]);
+    setModalOpen(true);
   };
 
   // --- EFFECTS ---
@@ -249,24 +281,25 @@ export default function Terminal() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500/30">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500/30 relative overflow-x-hidden">
       
+      {/* 1. BACKGROUND GRID */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,#00000000,transparent)]"></div>
+      </div>
+
       {/* NAVBAR */}
       <nav className="fixed w-full z-50 bg-zinc-950/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            
-            {/* LEFT SIDE: LOGO + TICKER */}
             <div className="flex items-center">
                 <div className="text-xl font-bold tracking-tighter flex items-center gap-2 text-white mr-6">
                     <div className={`w-2 h-2 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${backendStatus === 'online' ? 'bg-emerald-500 text-emerald-500' : 'bg-red-500 text-red-500'}`}/>
                     LUX QUANT <span className="text-emerald-500">FACTORY</span>
                 </div>
-                
-                {/* 🟢 LIVE TICKER */}
                 <LiveTicker />
             </div>
             
-            {/* RIGHT SIDE: BUTTONS */}
             <div className="flex items-center gap-4">
                 {user ? (
                     <>
@@ -307,10 +340,10 @@ export default function Terminal() {
       </section>
 
       {/* DASHBOARD */}
-      <section ref={dashboardRef} className="py-24 px-4 md:px-8 relative bg-zinc-950">
-          <div className="max-w-7xl mx-auto">
+      <section ref={dashboardRef} className="py-24 px-4 md:px-8 relative">
+          <div className="max-w-7xl mx-auto relative z-10">
               
-              {/* HEADER & STATUS */}
+              {/* HEADER */}
               <div className="flex flex-col md:flex-row items-end justify-between border-b border-white/5 pb-6 mb-10 gap-4">
                   <div>
                       <h2 className="text-3xl font-bold text-white tracking-tight">Strategy Terminal</h2>
@@ -332,8 +365,9 @@ export default function Terminal() {
                   
                   {/* SIDEBAR */}
                   <div className="lg:col-span-3 space-y-6 sticky top-24">
-                      <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm">
+                      <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm shadow-xl hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.1)] transition-all duration-500">
                           <div className="space-y-6">
+                              {/* ASSET SELECTOR */}
                               <div className="relative" ref={dropdownRef}>
                                   <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Asset Class</label>
                                   <button onClick={() => setIsAssetOpen(!isAssetOpen)} className="w-full mt-2 bg-zinc-950 border border-white/10 text-white py-3 px-4 rounded-lg flex justify-between items-center hover:border-emerald-500/50 transition-colors text-sm font-mono group">
@@ -353,6 +387,7 @@ export default function Terminal() {
                                       </div>
                                   )}
                               </div>
+                              
                               <div>
                                   <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Initial Capital ($)</label>
                                   <input type="number" value={capital} onChange={(e) => setCapital(Number(e.target.value))} className="w-full mt-2 bg-zinc-950 border border-white/10 p-3 rounded-lg text-white font-mono text-sm focus:border-emerald-500/50 outline-none transition-all focus:ring-1 focus:ring-emerald-500/20" />
@@ -385,6 +420,7 @@ export default function Terminal() {
                                       <button onClick={() => setRiskMode("Live")} className={`py-3 rounded-lg text-[10px] font-bold transition-all border ${riskMode === "Live" ? "bg-blue-900/20 border-blue-500 text-blue-400" : "bg-zinc-950 border-white/10 text-zinc-500 hover:border-zinc-700"}`}>LIVE (30%)</button>
                                   </div>
                               </div>
+                              
                               <button onClick={runOptimization} disabled={loading} className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed mt-4 relative overflow-hidden group">
                                 {loading ? (
                                     <div className="flex items-center justify-center gap-3">
@@ -397,6 +433,9 @@ export default function Terminal() {
                               </button>
                           </div>
                       </div>
+
+                      {/* 3. MARKET WIDGET */}
+                      <MarketWidget />
                   </div>
 
                   {/* MAIN DISPLAY */}
@@ -417,8 +456,10 @@ export default function Terminal() {
                           </div>
                       )}
 
+                      {/* 4. TERMINAL LOG DURING LOADING */}
                       {loading && (
                         <div className="space-y-6">
+                            <TerminalLog active={loading} />
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">{[1,2,3,4].map(i => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}</div>
                             <Skeleton className="h-[500px] w-full rounded-2xl" />
                         </div>
@@ -426,7 +467,7 @@ export default function Terminal() {
 
                       {strategy && !loading && (
                           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-                              <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-white/10 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                              <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-white/10 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg hover:shadow-[0_0_50px_-10px_rgba(16,185,129,0.1)] transition-all duration-500">
                                   <div>
                                       <h3 className="text-lg font-bold text-white flex items-center gap-2">Strategy Found: <span className="text-emerald-400">{strategy.strategy_name}</span></h3>
                                       <p className="text-sm text-zinc-400 mt-1 max-w-2xl">The engine identified a statistical edge in the <strong>last {strategy.window_days} days</strong>. It executes approximately <span className="text-zinc-200 font-mono">{(strategy.metrics.total_txns / (strategy.window_days || 1) * 7).toFixed(1)} trades/week</span>.</p>
@@ -435,13 +476,14 @@ export default function Terminal() {
                               </div>
 
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm relative overflow-hidden group">
+                                  {/* 5. GLOW EFFECTS ON CARDS */}
+                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm relative overflow-hidden group hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.2)] hover:border-emerald-500/30 transition-all duration-500">
                                       <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"/>
                                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Net Profit</p>
                                       <p className={`text-2xl font-mono font-bold ${strategy.metrics.total_pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{strategy.metrics.total_pnl >= 0 ? '+' : ''}${strategy.metrics.total_pnl.toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
                                       <p className="text-xs text-zinc-500 mt-1 font-mono">{strategy.metrics.pnl_percent.toFixed(2)}% Return</p>
                                   </div>
-                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.1)] hover:border-white/10 transition-all duration-500">
                                       <div className="flex justify-between items-start">
                                           <div>
                                               <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Profit Factor</p>
@@ -450,12 +492,12 @@ export default function Terminal() {
                                           <div className="text-[10px] bg-zinc-950 px-2 py-1 rounded text-zinc-400 border border-white/5">{strategy.metrics.note}</div>
                                       </div>
                                   </div>
-                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm hover:shadow-[0_0_40px_-10px_rgba(244,63,94,0.1)] hover:border-rose-500/20 transition-all duration-500">
                                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Drawdown</p>
                                       <p className={`text-2xl font-mono font-bold ${strategy.metrics.max_dd > (riskMode==="Funded"?9:25) ? "text-rose-400" : "text-zinc-200"}`}>{strategy.metrics.max_dd}%</p>
                                       <p className="text-xs text-zinc-500 mt-1">Peak-to-Valley Risk</p>
                                   </div>
-                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                                  <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.1)] hover:border-blue-500/20 transition-all duration-500">
                                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Volume</p>
                                       <div className="flex items-baseline gap-2">
                                           <p className="text-2xl font-mono font-bold text-blue-400">{strategy.metrics.total_txns}</p>
@@ -465,7 +507,7 @@ export default function Terminal() {
                                   </div>
                               </div>
 
-                              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 min-h-[500px] flex flex-col shadow-2xl backdrop-blur-sm">
+                              <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 min-h-[500px] flex flex-col shadow-2xl backdrop-blur-sm hover:border-white/10 transition-colors">
                                   <div className="flex justify-between items-center mb-6">
                                       <div><h3 className="font-bold text-white text-lg flex items-center gap-2">Equity Curve<Badge type="info">{symbol}</Badge></h3><p className="text-xs text-zinc-500 font-mono mt-1">Simulated performance. Static view.</p></div>
                                       <div className="flex gap-2">
@@ -475,17 +517,21 @@ export default function Terminal() {
                                       </div>
                                   </div>
                                   {showCode ? (
-                                      <div className="flex-grow bg-zinc-950 border border-white/5 rounded-xl overflow-hidden relative group animate-in fade-in slide-in-from-right-4">
-                                          <div className="bg-zinc-900 px-4 py-3 flex justify-between items-center border-b border-white/5">
+                                      <div className="flex-grow bg-zinc-950 border border-white/5 rounded-xl overflow-hidden relative group animate-in fade-in slide-in-from-right-4 flex flex-col h-[400px]">
+                                          <div className="bg-zinc-900 px-4 py-3 flex justify-between items-center border-b border-white/5 shrink-0">
                                                <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider flex items-center gap-2">TradingView Pine Script v5</span>
-                                               <button onClick={() => navigator.clipboard.writeText(strategy.metrics.pine_code)} className="text-[10px] bg-zinc-100 text-black px-3 py-1 rounded hover:bg-zinc-300 font-bold transition-colors">COPY CODE</button>
+                                               <button onClick={handleCopyCode} className="text-[10px] bg-zinc-100 text-black px-3 py-1 rounded hover:bg-zinc-300 font-bold transition-colors">COPY CODE</button>
                                           </div>
-                                          <textarea readOnly value={strategy.metrics.pine_code} className="w-full h-full min-h-[400px] bg-transparent text-xs font-mono text-emerald-400/90 p-4 outline-none resize-none"/>
+                                          <textarea 
+                                            readOnly 
+                                            value={strategy.metrics.pine_code} 
+                                            className="w-full flex-grow bg-zinc-950 text-xs font-mono text-emerald-400/90 p-4 outline-none resize-none overflow-auto whitespace-pre"
+                                          />
                                       </div>
                                   ) : (
                                       <div className="flex-grow w-full relative border border-white/5 rounded-xl overflow-hidden bg-zinc-950/50">
-                                            <div className="absolute inset-0 pointer-events-none">
-                                                <StrategyChart data={strategy.chart_data} />
+                                            <div className="absolute inset-0">
+                                                <InteractiveChart data={strategy.chart_data} />
                                             </div>
                                       </div>
                                   )}
@@ -498,12 +544,24 @@ export default function Terminal() {
       </section>
 
       {/* FOOTER */}
-      <footer className="py-12 border-t border-white/5 bg-zinc-950">
+      <footer className="py-12 border-t border-white/5 bg-zinc-950 relative z-10">
           <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="text-xs text-zinc-600">&copy; {new Date().getFullYear()} Lux Quant AI. Not financial advice. Data provided for educational purposes.</div>
-              <div className="flex gap-6 text-xs text-zinc-500 font-bold uppercase tracking-wider"><a href="#" className="hover:text-white transition-colors">Documentation</a><a href="#" className="hover:text-white transition-colors">Terms</a><a href="#" className="hover:text-white transition-colors">Privacy</a></div>
+              <div className="flex gap-6 text-xs text-zinc-500 font-bold uppercase tracking-wider">
+                  <button onClick={() => openModal('docs')} className="hover:text-white transition-colors">Documentation</button>
+                  <button onClick={() => openModal('terms')} className="hover:text-white transition-colors">Terms</button>
+                  <button onClick={() => openModal('privacy')} className="hover:text-white transition-colors">Privacy</button>
+              </div>
           </div>
       </footer>
+
+      {/* 6. LEGAL MODAL COMPONENT */}
+      <LegalModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        title={modalContent.title} 
+        content={modalContent.text} 
+      />
     </main>
   );
 }
