@@ -7,7 +7,6 @@ import { LiveTicker } from "./components/LiveTicker"; // Keep your existing comp
 import { toast } from "sonner";
 import { InteractiveChart } from "./components/InteractiveChart"; // Keep your existing components
 import { LegalModal } from "./components/LegalModal"; // Keep your existing components
-// NOTE: We removed the import for TerminalLog because we defined a fixed version below
 
 // --- INTERNAL TERMINAL LOG COMPONENT (Fixed Scrolling) ---
 const LOG_MESSAGES = [
@@ -425,7 +424,6 @@ export default function Terminal() {
   }, []);
 
   // CLICK OUTSIDE DROPDOWN
-  // FIX: stable dependency array, and safe ref usage.
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const el = dropdownRef.current;
@@ -521,8 +519,10 @@ export default function Terminal() {
 
   const scrollToDashboard = () => dashboardRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  // OPTIMIZATION
-  const runOptimization = async () => {
+  // --- UPDATED OPTIMIZATION LOGIC ---
+
+  // NOTE: Added optional 'overrides' to support "Find Similar" functionality
+  const runOptimization = async (overrides?: Partial<OptimizationRequest>) => {
     if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -542,6 +542,7 @@ export default function Terminal() {
 
     const maxDrawdown = riskMode === "Funded" ? 10.0 : 30.0;
 
+    // Merge current state with any overrides
     const payload: OptimizationRequest = {
       symbol,
       initial_capital: capital,
@@ -552,6 +553,7 @@ export default function Terminal() {
       timeframe: "1h",
       window_mode: windowMode,
       window_days_candidates: [30, 45, 60, 90, 120, 180, 365],
+      ...overrides // Overrides apply last
     };
 
     const BASE = backendBase();
@@ -630,6 +632,30 @@ export default function Terminal() {
     }
   };
 
+  // --- NEW: FIND SIMILAR HANDLER ---
+  const handleFindSimilar = () => {
+    // We slightly tweak the settings to force the backend to find a DIFFERENT optimum
+    // 1. Randomize trade count by +/- 10-20%
+    // 2. Tweak Profit Factor slightly
+    
+    const variance = Math.floor(Math.random() * 10) + 5; // Random number between 5 and 15
+    const direction = Math.random() > 0.5 ? 1 : -1;
+    
+    // Calculate new constraints
+    const newMinTrades = Math.max(5, minTrades + (variance * direction));
+    const newMaxTrades = maxTrades + (variance * direction);
+    const newTargetPF = Math.max(1.1, targetPF + (Math.random() * 0.2 - 0.1)); // Tweak PF by +/- 0.1
+
+    toast.info(`Finding variations... (Trades: ${newMinTrades}-${newMaxTrades}, PF: ${newTargetPF.toFixed(1)})`);
+
+    // Run optimization with these overrides
+    runOptimization({
+        min_trades: newMinTrades,
+        max_trades: newMaxTrades,
+        min_profit_factor: newTargetPF
+    });
+  };
+
   const downloadCSV = () => {
     if (!strategy) return;
     const headers = "Time,Equity\n";
@@ -706,7 +732,7 @@ export default function Terminal() {
         </div>
       </nav>
 
-      {/* HERO - UPDATED MARGINS TO FIX OVERLAP */}
+      {/* HERO */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-zinc-950 to-zinc-950 z-0" />
         <div className="max-w-5xl mx-auto text-center relative z-10">
@@ -946,7 +972,7 @@ export default function Terminal() {
                   </div>
 
                   <button
-                    onClick={runOptimization}
+                    onClick={() => runOptimization()}
                     disabled={loading || backendStatus !== "online"}
                     className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed mt-4 relative overflow-hidden group border border-emerald-400/20"
                     title={backendStatus !== "online" ? "Backend offline" : undefined}
@@ -1083,9 +1109,9 @@ export default function Terminal() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      {/* ADDED SIMILAR BUTTON */}
+                      {/* FIND SIMILAR BUTTON */}
                       <button
-                        onClick={runOptimization}
+                        onClick={handleFindSimilar}
                         disabled={loading || backendStatus !== "online"}
                         className="flex items-center gap-2 text-[10px] bg-emerald-950/50 hover:bg-emerald-900 text-emerald-400 px-3 py-1.5 rounded border border-emerald-900/50 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] font-bold group"
                       >
