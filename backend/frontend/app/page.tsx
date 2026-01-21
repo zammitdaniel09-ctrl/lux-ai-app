@@ -1,13 +1,79 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import { supabase } from "./supabase";
+import { supabase } from "./supabase"; // Ensure this path is correct
 import { useRouter } from "next/navigation";
-import { LiveTicker } from "./components/LiveTicker";
+import { LiveTicker } from "./components/LiveTicker"; // Keep your existing components
 import { toast } from "sonner";
-import { InteractiveChart } from "./components/InteractiveChart";
-import { TerminalLog } from "./components/TerminalLog";
-import { LegalModal } from "./components/LegalModal";
+import { InteractiveChart } from "./components/InteractiveChart"; // Keep your existing components
+import { LegalModal } from "./components/LegalModal"; // Keep your existing components
+// NOTE: We removed the import for TerminalLog because we defined a fixed version below
+
+// --- INTERNAL TERMINAL LOG COMPONENT (Fixed Scrolling) ---
+const LOG_MESSAGES = [
+  "Initializing neural network...",
+  "Connecting to Binance Websocket...",
+  "Fetching OHLCV data...",
+  "Calculating volatility indices...",
+  "Running Monte Carlo simulations (n=10,000)...",
+  "Optimizing entry/exit vectors...",
+  "Detecting support/resistance levels...",
+  "Validating risk parameters...",
+  "Finalizing strategy metrics...",
+  "Generating Pine Script code..."
+];
+
+const TerminalLog = ({ active }: { active: boolean }) => {
+  const [logs, setLogs] = useState<string[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!active) return;
+
+    setLogs([]); // Reset logs when activation starts
+    let i = 0;
+
+    const interval = setInterval(() => {
+      if (i < LOG_MESSAGES.length) {
+        const msg = LOG_MESSAGES[i];
+        setLogs(prev => [...prev, `> ${msg}`]);
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 600); 
+
+    return () => clearInterval(interval);
+  }, [active]);
+
+  // FIX: This scrolls ONLY the container, not the whole window
+  useEffect(() => {
+    if (containerRef.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  if (!active) return null;
+
+  return (
+    <div 
+        ref={containerRef}
+        className="font-mono text-xs text-emerald-500/90 bg-black/80 p-6 rounded-xl border border-emerald-500/20 h-64 overflow-y-auto mb-6 backdrop-blur-md shadow-[inset_0_0_20px_rgba(16,185,129,0.1)] scroll-smooth"
+    >
+      <div className="flex flex-col gap-2">
+        {logs.map((log, idx) => (
+          <div key={idx} className="animate-in fade-in slide-in-from-left-2 duration-300">
+            {log} <span className="text-emerald-800 ml-2">[OK]</span>
+          </div>
+        ))}
+        {/* Blinking cursor */}
+        {logs.length < LOG_MESSAGES.length && (
+             <div className="animate-pulse text-emerald-400">_</div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // --- CONFIGURATION ---
 
@@ -640,14 +706,14 @@ export default function Terminal() {
         </div>
       </nav>
 
-      {/* HERO */}
+      {/* HERO - UPDATED MARGINS TO FIX OVERLAP */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-zinc-950 to-zinc-950 z-0" />
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
             <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_5px_currentColor]" /> v4.4 ECOSYSTEM LIVE
           </div>
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent animate-in fade-in zoom-in-95 duration-1000 drop-shadow-2xl">
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-10 pb-4 leading-tight bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent animate-in fade-in zoom-in-95 duration-1000 drop-shadow-2xl">
             Mathematically Proven <br /> Trading Alpha.
           </h1>
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-4 delay-300 duration-1000">
