@@ -1,42 +1,46 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from 'react';
+
+// Define messages outside the component to keep the reference stable
+const MESSAGES = [
+  "Initializing neural network...",
+  "Connecting to Binance Websocket...",
+  "Fetching OHLCV data...",
+  "Calculating volatility indices...",
+  "Running Monte Carlo simulations (n=10,000)...",
+  "Optimizing entry/exit vectors...",
+  "Detecting support/resistance levels...",
+  "Validating risk parameters...",
+  "Finalizing strategy metrics...",
+  "Generating Pine Script code..."
+];
 
 export const TerminalLog = ({ active }: { active: boolean }) => {
   const [logs, setLogs] = useState<string[]>([]);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
-  // The "script" the AI will type out
-  const messages = [
-    "Initializing neural network...",
-    "Connecting to Binance Websocket...",
-    "Fetching OHLCV data...",
-    "Calculating volatility indices...",
-    "Running Monte Carlo simulations (n=10,000)...",
-    "Optimizing entry/exit vectors...",
-    "Detecting support/resistance levels...",
-    "Validating risk parameters...",
-    "Finalizing strategy metrics...",
-    "Generating Pine Script code..."
-  ];
-
   useEffect(() => {
-    if (active) {
-      setLogs([]); // Clear logs on start
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < messages.length) {
-            const msg = messages[i];
-            setLogs(prev => [...prev, `> ${msg}`]);
-            i++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 600); // Add a new line every 600ms
-      return () => clearInterval(interval);
-    }
+    if (!active) return;
+
+    setLogs([]); // Reset logs when activation starts
+    let i = 0;
+
+    const interval = setInterval(() => {
+      // Use the external MESSAGES constant
+      if (i < MESSAGES.length) {
+        const msg = MESSAGES[i];
+        setLogs(prev => [...prev, `> ${msg}`]);
+        i++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 600); 
+
+    return () => clearInterval(interval);
   }, [active]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom whenever logs update
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
@@ -52,7 +56,8 @@ export const TerminalLog = ({ active }: { active: boolean }) => {
           </div>
         ))}
         <div ref={logsEndRef} />
-        {logs.length < messages.length && (
+        {/* Blinking cursor while running */}
+        {logs.length < MESSAGES.length && (
              <div className="animate-pulse text-emerald-400">_</div>
         )}
       </div>

@@ -172,7 +172,7 @@ const Badge = ({
 }) => {
   const styles = {
     neutral: "bg-zinc-800 text-zinc-400 border-zinc-700",
-    success: "bg-emerald-950/30 text-emerald-400 border-emerald-900/50",
+    success: "bg-emerald-950/30 text-emerald-400 border-emerald-900/50 shadow-[0_0_10px_rgba(16,185,129,0.2)]",
     warning: "bg-amber-950/30 text-amber-400 border-amber-900/50",
     danger: "bg-rose-950/30 text-rose-400 border-rose-900/50",
     info: "bg-blue-950/30 text-blue-400 border-blue-900/50",
@@ -595,8 +595,10 @@ export default function Terminal() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500/30 relative overflow-x-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Background Grids and Glows */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_200px,#00000000,transparent)]" />
+        <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none" />
       </div>
 
       {/* NAVBAR */}
@@ -630,7 +632,7 @@ export default function Terminal() {
             )}
             <button
               onClick={scrollToDashboard}
-              className="bg-zinc-100 text-zinc-950 px-5 py-2 rounded-full text-xs font-bold hover:bg-zinc-200 transition-colors border border-transparent hover:border-emerald-500"
+              className="bg-zinc-100 text-zinc-950 px-5 py-2 rounded-full text-xs font-bold hover:bg-zinc-200 transition-colors border border-transparent hover:border-emerald-500 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
             >
               LAUNCH TERMINAL
             </button>
@@ -640,18 +642,18 @@ export default function Terminal() {
 
       {/* HERO */}
       <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/10 via-zinc-950 to-zinc-950 z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/20 via-zinc-950 to-zinc-950 z-0" />
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" /> v4.4 ECOSYSTEM LIVE
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-[0.2em] uppercase animate-in fade-in slide-in-from-bottom-4 duration-700 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full shadow-[0_0_5px_currentColor]" /> v4.4 ECOSYSTEM LIVE
           </div>
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-white via-white to-zinc-600 bg-clip-text text-transparent animate-in fade-in zoom-in-95 duration-1000">
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tighter mb-6 bg-gradient-to-b from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent animate-in fade-in zoom-in-95 duration-1000 drop-shadow-2xl">
             Mathematically Proven <br /> Trading Alpha.
           </h1>
           <div className="flex flex-col md:flex-row gap-4 justify-center items-center animate-in fade-in slide-in-from-bottom-4 delay-300 duration-1000">
             <button
               onClick={scrollToDashboard}
-              className="group relative bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl text-sm font-bold transition-all w-full md:w-auto overflow-hidden shadow-lg shadow-emerald-900/20"
+              className="group relative bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 rounded-xl text-sm font-bold transition-all w-full md:w-auto overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)]"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
               <span className="relative flex items-center gap-2 justify-center">START GENERATING ▼</span>
@@ -671,7 +673,7 @@ export default function Terminal() {
           {/* HEADER */}
           <div className="flex flex-col md:flex-row items-end justify-between border-b border-white/5 pb-6 mb-10 gap-4">
             <div>
-              <h2 className="text-3xl font-bold text-white tracking-tight">Strategy Terminal</h2>
+              <h2 className="text-3xl font-bold text-white tracking-tight drop-shadow-lg">Strategy Terminal</h2>
               <p className="text-sm text-zinc-500 mt-1">Configure parameters. The engine returns the best fit for your constraints.</p>
             </div>
             <div className="flex gap-3">
@@ -694,13 +696,13 @@ export default function Terminal() {
             {/* SIDEBAR */}
             <div className="lg:col-span-3 space-y-6 sticky top-24">
               {/* ASSET SELECTOR */}
-              <div className="relative z-50 bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm shadow-xl">
+              <div className="relative z-50 bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-emerald-500/20 transition-all duration-500">
                 <div className="space-y-4">
                   <div className="relative" ref={dropdownRef}>
                     <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Asset Class</label>
                     <button
                       onClick={() => setIsAssetOpen(!isAssetOpen)}
-                      className="w-full mt-2 bg-zinc-950 border border-white/10 text-white py-3 px-4 rounded-lg flex justify-between items-center hover:border-emerald-500/50 transition-colors text-sm font-mono group"
+                      className="w-full mt-2 bg-zinc-950 border border-white/10 text-white py-3 px-4 rounded-lg flex justify-between items-center hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.1)] transition-all text-sm font-mono group"
                     >
                       <span className="truncate">{displayName}</span>
                       <span className={`text-zinc-600 group-hover:text-emerald-500 transition-transform ${isAssetOpen ? "rotate-180" : ""}`}>▼</span>
@@ -754,7 +756,7 @@ export default function Terminal() {
                   </div>
 
                   {/* LIVE SNAPSHOT WIDGET */}
-                  <div className="grid grid-cols-2 gap-2 text-xs font-mono bg-zinc-950/50 p-3 rounded border border-white/5">
+                  <div className="grid grid-cols-2 gap-2 text-xs font-mono bg-zinc-950/50 p-3 rounded border border-white/5 shadow-inner">
                     <div>
                       <div className="text-zinc-500 text-[10px]">Price</div>
                       <div className="text-white">${Number(assetStats.price || 0).toFixed(2)}</div>
@@ -777,7 +779,7 @@ export default function Terminal() {
                       </div>
                       <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
                         <div
-                          className="bg-orange-500 h-full transition-all duration-1000"
+                          className="bg-orange-500 h-full transition-all duration-1000 shadow-[0_0_10px_orange]"
                           style={{ width: `${Math.min(Number(assetStats.volatility || 0) * 2, 100)}%` }}
                         />
                       </div>
@@ -787,24 +789,24 @@ export default function Terminal() {
               </div>
 
               {/* QUICK PRESETS & INPUTS */}
-              <div className="relative z-10 bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm shadow-xl">
+              <div className="relative z-10 bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:border-emerald-500/20 transition-all duration-500">
                 <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-2 block">Quick Presets</label>
                 <div className="grid grid-cols-3 gap-2 mb-6">
                   <button
                     onClick={() => applyPreset("prop")}
-                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-emerald-500/50 text-[9px] font-bold text-zinc-400 hover:text-emerald-400 transition-all"
+                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-emerald-500/50 text-[9px] font-bold text-zinc-400 hover:text-emerald-400 transition-all hover:shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                   >
                     PROP SAFE
                   </button>
                   <button
                     onClick={() => applyPreset("agg")}
-                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-blue-500/50 text-[9px] font-bold text-zinc-400 hover:text-blue-400 transition-all"
+                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-blue-500/50 text-[9px] font-bold text-zinc-400 hover:text-blue-400 transition-all hover:shadow-[0_0_10px_rgba(59,130,246,0.2)]"
                   >
                     AGGRO
                   </button>
                   <button
                     onClick={() => applyPreset("high")}
-                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-purple-500/50 text-[9px] font-bold text-zinc-400 hover:text-purple-400 transition-all"
+                    className="p-2 bg-zinc-950 border border-white/10 rounded hover:border-purple-500/50 text-[9px] font-bold text-zinc-400 hover:text-purple-400 transition-all hover:shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                   >
                     SAMPLE+
                   </button>
@@ -817,7 +819,7 @@ export default function Terminal() {
                       type="number"
                       value={capital}
                       onChange={(e) => setCapital(Number(e.target.value))}
-                      className="w-full mt-2 bg-zinc-950 border border-white/10 p-3 rounded-lg text-white font-mono text-sm focus:border-emerald-500/50 outline-none"
+                      className="w-full mt-2 bg-zinc-950 border border-white/10 p-3 rounded-lg text-white font-mono text-sm focus:border-emerald-500/50 focus:shadow-[0_0_10px_rgba(16,185,129,0.1)] outline-none transition-all"
                     />
                   </div>
 
@@ -860,7 +862,7 @@ export default function Terminal() {
                         onClick={() => setRiskMode("Funded")}
                         className={`py-3 rounded-lg text-[10px] font-bold transition-all border ${
                           riskMode === "Funded"
-                            ? "bg-emerald-900/20 border-emerald-500 text-emerald-400"
+                            ? "bg-emerald-900/20 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                             : "bg-zinc-950 border-white/10 text-zinc-500 hover:border-zinc-700"
                         }`}
                       >
@@ -869,7 +871,7 @@ export default function Terminal() {
                       <button
                         onClick={() => setRiskMode("Live")}
                         className={`py-3 rounded-lg text-[10px] font-bold transition-all border ${
-                          riskMode === "Live" ? "bg-blue-900/20 border-blue-500 text-blue-400" : "bg-zinc-950 border-white/10 text-zinc-500 hover:border-zinc-700"
+                          riskMode === "Live" ? "bg-blue-900/20 border-blue-500 text-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.2)]" : "bg-zinc-950 border-white/10 text-zinc-500 hover:border-zinc-700"
                         }`}
                       >
                         LIVE (30%)
@@ -880,7 +882,7 @@ export default function Terminal() {
                   <button
                     onClick={runOptimization}
                     disabled={loading || backendStatus !== "online"}
-                    className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/20 disabled:opacity-50 disabled:cursor-not-allowed mt-4 relative overflow-hidden group"
+                    className="w-full bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed mt-4 relative overflow-hidden group border border-emerald-400/20"
                     title={backendStatus !== "online" ? "Backend offline" : undefined}
                   >
                     {loading ? (
@@ -918,11 +920,11 @@ export default function Terminal() {
 
               {/* SAVED STRATEGIES */}
               {user && savedStrategies.length > 0 && (
-                <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-sm shadow-xl">
+                <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
                   <label className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider mb-3 block">Saved Alpha</label>
                   <div className="space-y-2">
                     {savedStrategies.map((s, i) => (
-                      <div key={i} className="flex justify-between items-center text-xs p-2 bg-zinc-950/50 rounded border border-white/5">
+                      <div key={i} className="flex justify-between items-center text-xs p-2 bg-zinc-950/50 rounded border border-white/5 hover:border-emerald-500/30 transition-colors">
                         <div>
                           <span className="text-white font-bold">{s.symbol}</span> <span className="text-zinc-500">{String(s.name).substring(0, 10)}...</span>
                         </div>
@@ -940,7 +942,7 @@ export default function Terminal() {
             {/* MAIN DISPLAY */}
             <div className="lg:col-span-9 space-y-6 relative z-20">
               {error && (
-                <div className="bg-rose-950/10 border border-rose-900/30 text-rose-400 p-6 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2">
+                <div className="bg-rose-950/10 border border-rose-900/30 text-rose-400 p-6 rounded-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-2 shadow-[0_0_20px_rgba(244,63,94,0.1)]">
                   <Icons.Alert />
                   <div>
                     <p className="text-sm font-bold">Optimization Failed</p>
@@ -950,17 +952,17 @@ export default function Terminal() {
               )}
 
               {!strategy && !error && !loading && (
-                <div className="relative z-20 min-h-[520px] flex flex-col items-center justify-center text-zinc-600 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20 p-8">
+                <div className="relative z-20 min-h-[520px] flex flex-col items-center justify-center text-zinc-600 border border-dashed border-white/10 rounded-2xl bg-zinc-900/20 p-8 backdrop-blur-sm">
                   {/* REFACTORED STEPPER FOR ALIGNMENT */}
                   <div className="max-w-md w-full">
                     {/* Step 1 */}
                     <div className="flex gap-4">
                         <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold border border-emerald-500/50 shrink-0 z-10">1</div>
-                            <div className="w-0.5 h-full bg-white/10 -mt-2 pb-2 min-h-[20px]" />
+                            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold border border-emerald-500/50 shrink-0 z-10 shadow-[0_0_15px_rgba(16,185,129,0.4)] animate-pulse">1</div>
+                            <div className="w-0.5 h-full bg-gradient-to-b from-emerald-500/50 to-white/10 -mt-2 pb-2 min-h-[20px]" />
                         </div>
                         <div className="pb-8 pt-1">
-                            <div className="text-sm font-bold text-white">Select Asset</div>
+                            <div className="text-sm font-bold text-white drop-shadow-md">Select Asset</div>
                             <div className="text-xs text-zinc-500">Choose a symbol from the sidebar.</div>
                         </div>
                     </div>
@@ -1001,10 +1003,10 @@ export default function Terminal() {
 
               {strategy && !loading && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-                  <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-white/10 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-lg">
+                  <div className="bg-gradient-to-r from-zinc-900 to-zinc-950 border border-white/10 p-6 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
                     <div>
                       <h3 className="text-lg font-bold text-white">
-                        Strategy Found: <span className="text-emerald-400">{strategy.strategy_name}</span>
+                        Strategy Found: <span className="text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">{strategy.strategy_name}</span>
                       </h3>
                       <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
                         <div className="flex items-center gap-1">
@@ -1019,9 +1021,9 @@ export default function Terminal() {
                       <button
                         onClick={runOptimization}
                         disabled={loading || backendStatus !== "online"}
-                        className="flex items-center gap-2 text-[10px] bg-emerald-950/50 hover:bg-emerald-900 text-emerald-400 px-3 py-1.5 rounded border border-emerald-900/50 transition-colors font-bold"
+                        className="flex items-center gap-2 text-[10px] bg-emerald-950/50 hover:bg-emerald-900 text-emerald-400 px-3 py-1.5 rounded border border-emerald-900/50 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] font-bold group"
                       >
-                         <Icons.Zap /> FIND SIMILAR
+                         <Icons.Zap /> <span className="group-hover:text-emerald-300">FIND SIMILAR</span>
                       </button>
 
                       <button
@@ -1038,20 +1040,20 @@ export default function Terminal() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-md shadow-lg hover:border-emerald-500/20 transition-all">
                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Net Profit</p>
-                      <p className={`text-2xl font-mono font-bold ${strategy.metrics.total_pnl >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                      <p className={`text-2xl font-mono font-bold ${strategy.metrics.total_pnl >= 0 ? "text-emerald-400" : "text-red-400"} drop-shadow-md`}>
                         {strategy.metrics.total_pnl >= 0 ? "+" : ""}
                         ${strategy.metrics.total_pnl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </p>
                       <p className="text-xs text-zinc-500 mt-1 font-mono">{strategy.metrics.pnl_percent.toFixed(2)}% Return</p>
                     </div>
 
-                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-md shadow-lg hover:border-emerald-500/20 transition-all">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Profit Factor</p>
-                          <p className={`text-2xl font-mono font-bold ${strategy.metrics.profit_factor >= targetPF ? "text-emerald-400" : "text-amber-500"}`}>
+                          <p className={`text-2xl font-mono font-bold ${strategy.metrics.profit_factor >= targetPF ? "text-emerald-400" : "text-amber-500"} drop-shadow-md`}>
                             {strategy.metrics.profit_factor}
                           </p>
                         </div>
@@ -1059,7 +1061,7 @@ export default function Terminal() {
                       </div>
                     </div>
 
-                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-md shadow-lg hover:border-emerald-500/20 transition-all">
                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Drawdown</p>
                       <p className={`text-2xl font-mono font-bold ${strategy.metrics.max_dd > (riskMode === "Funded" ? 9 : 25) ? "text-rose-400" : "text-zinc-200"}`}>
                         {strategy.metrics.max_dd}%
@@ -1067,7 +1069,7 @@ export default function Terminal() {
                       <p className="text-xs text-zinc-500 mt-1">Peak-to-Valley Risk</p>
                     </div>
 
-                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-sm">
+                    <div className="bg-zinc-900/50 p-5 rounded-xl border border-white/5 backdrop-blur-md shadow-lg hover:border-emerald-500/20 transition-all">
                       <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider mb-2">Volume</p>
                       <div className="flex items-baseline gap-2">
                         <p className="text-2xl font-mono font-bold text-blue-400">{strategy.metrics.total_txns}</p>
@@ -1077,7 +1079,7 @@ export default function Terminal() {
                     </div>
                   </div>
 
-                  <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 flex flex-col shadow-2xl backdrop-blur-sm">
+                  <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5 flex flex-col shadow-2xl backdrop-blur-md">
                     <div className="flex justify-between items-center mb-6">
                       <div>
                         <h3 className="font-bold text-white text-lg flex items-center gap-2">
@@ -1089,7 +1091,7 @@ export default function Terminal() {
                       <div className="flex gap-2">
                         <button
                           onClick={saveStrategy}
-                          className="flex items-center gap-2 text-[10px] bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/50 px-3 py-1.5 rounded border border-emerald-900/50 transition-colors font-bold"
+                          className="flex items-center gap-2 text-[10px] bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/50 px-3 py-1.5 rounded border border-emerald-900/50 transition-colors font-bold shadow-[0_0_10px_rgba(16,185,129,0.1)]"
                         >
                           <Icons.Save /> SAVE
                         </button>
@@ -1109,7 +1111,7 @@ export default function Terminal() {
                     </div>
 
                     {showCode ? (
-                      <div className="bg-zinc-950 border border-white/5 rounded-xl overflow-hidden flex flex-col h-[420px]">
+                      <div className="bg-zinc-950 border border-white/5 rounded-xl overflow-hidden flex flex-col h-[420px] shadow-inner">
                         <div className="bg-zinc-900 px-4 py-3 flex justify-between items-center border-b border-white/5 shrink-0">
                           <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">TradingView Pine Script v5</span>
                           <button onClick={handleCopyCode} className="text-[10px] bg-zinc-100 text-black px-3 py-1 rounded hover:bg-zinc-300 font-bold transition-colors">
@@ -1123,7 +1125,7 @@ export default function Terminal() {
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-[420px] border border-white/5 rounded-xl overflow-hidden bg-zinc-950/50">
+                      <div className="w-full h-[420px] border border-white/5 rounded-xl overflow-hidden bg-zinc-950/50 shadow-inner">
                         {strategy.chart_data?.length >= 2 ? (
                           <InteractiveChart data={strategy.chart_data} />
                         ) : (
